@@ -5,7 +5,6 @@
 
 void forward()//
 {
-
  analogWrite(input3,127);
  analogWrite(input4,0);
  delay(10);
