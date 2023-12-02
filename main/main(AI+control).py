@@ -6,8 +6,25 @@ import gc, sys
 from fpioa_manager import fm
 import machine
 from math import sqrt, fabs
-import demo_socket_pic_client
+from Maix import GPIO
+clock = time.clock()
 
+# 定义引脚映射
+step_pin1 = 11  # pin11
+dir_pin1 = 10   # pin12
+step_pin2 = 21  # pin2
+dir_pin2 = 22   # pin3
+
+# 初始化引脚
+fm.register(step_pin1, fm.fpioa.GPIOHS0, force=True)
+fm.register(dir_pin1, fm.fpioa.GPIOHS1, force=True)
+fm.register(step_pin2, fm.fpioa.GPIOHS2, force=True)
+fm.register(dir_pin2, fm.fpioa.GPIOHS3, force=True)
+
+step_motor1 = GPIO(GPIO.GPIOHS0, GPIO.OUT)
+dir_motor1 = GPIO(GPIO.GPIOHS1, GPIO.OUT)
+step_motor2 = GPIO(GPIO.GPIOHS2, GPIO.OUT)
+dir_motor2 = GPIO(GPIO.GPIOHS3, GPIO.OUT)
 
 input_size = (224, 224)
 labels = ['可乐瓶']
@@ -21,6 +38,21 @@ def lcd_show_except(e):
     img = image.Image(size=input_size)
     img.draw_string(0, 10, err_str, scale=1, color=(0xff,0x00,0x00))
     lcd.display(img)
+
+def set_motor1_steps(direction, steps):
+    dir_motor1.value(direction)
+    for i in range(steps):
+        step_motor1.value(1)
+        time.sleep_ms(1)  # 控制步进电机步进脉冲的时间间隔
+        step_motor1.value(0)
+        time.sleep_ms(1)
+def set_motor2_steps(direction, steps):
+    dir_motor2.value(direction)
+    for i in range(steps):
+        step_motor2.value(1)
+        time.sleep_ms(1)  # 控制步进电机步进脉冲的时间间隔
+        step_motor2.value(0)
+        time.sleep_ms(1)
 
 class Comm:
     def __init__(self, uart):
@@ -93,6 +125,13 @@ def main(anchors, labels = None, model_addr="/sd/m.kmodel", sensor_window=input_
                     img.draw_rectangle(pos)
                     img.draw_string(pos[0], pos[1], "%s : %.2f" %(labels[obj.classid()], obj.value()), scale=2, color=(255, 0, 0))
                 comm.send_detect_result(objects, labels)
+                set_motor1_steps(1, 50)
+                time.sleep_ms(500)
+                set_motor1_steps(0, 50)
+                time.sleep_ms(500)
+                set_motor2_steps(1, 500)
+                time.sleep_ms(1000)
+                set_motor2_steps(0, 500)
 
             img.draw_string(0, 200, "t:%dms" %(t), scale=2, color=(255, 0, 0))
             lcd.display(img)
