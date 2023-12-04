@@ -5,24 +5,24 @@ import KPU as kpu
 import gc, sys
 from fpioa_manager import fm
 import machine
-from math import sqrt, fabs
 from Maix import GPIO
-clock = time.clock()
+
 
 # 定义引脚映射
-step_pin1 = 11  # pin11
-dir_pin1 = 10   # pin12
+# 定义引脚映射
+step_pin1 = 23  # pin4
+dir_pin1 = 24   # pin5
 step_pin2 = 21  # pin2
 dir_pin2 = 22   # pin3
 
 # 初始化引脚
-fm.register(step_pin1, fm.fpioa.GPIOHS0, force=True)
-fm.register(dir_pin1, fm.fpioa.GPIOHS1, force=True)
+fm.register(step_pin1, fm.fpioa.GPIO0, force=True)
+fm.register(dir_pin1, fm.fpioa.GPIO1, force=True)
 fm.register(step_pin2, fm.fpioa.GPIOHS2, force=True)
 fm.register(dir_pin2, fm.fpioa.GPIOHS3, force=True)
 
-step_motor1 = GPIO(GPIO.GPIOHS0, GPIO.OUT)
-dir_motor1 = GPIO(GPIO.GPIOHS1, GPIO.OUT)
+step_motor1 = GPIO(GPIO.GPIO0, GPIO.OUT)
+dir_motor1 = GPIO(GPIO.GPIO1, GPIO.OUT)
 step_motor2 = GPIO(GPIO.GPIOHS2, GPIO.OUT)
 dir_motor2 = GPIO(GPIO.GPIOHS3, GPIO.OUT)
 
@@ -39,6 +39,20 @@ def lcd_show_except(e):
     img.draw_string(0, 10, err_str, scale=1, color=(0xff,0x00,0x00))
     lcd.display(img)
 
+def set_motor1_steps(direction, steps):
+    dir_motor1.value(direction)
+    for i in range(steps):
+        step_motor1.value(1)
+        time.sleep_ms(4)  # 控制步进电机步进脉冲的时间间隔
+        step_motor1.value(0)
+        time.sleep_ms(4)
+def set_motor2_steps(direction, steps):
+    dir_motor2.value(direction)
+    for i in range(steps):
+        step_motor2.value(1)
+        time.sleep_ms(2)  # 控制步进电机步进脉冲的时间间隔
+        step_motor2.value(0)
+        time.sleep_ms(2)
 
 class Comm:
     def __init__(self, uart):
@@ -62,21 +76,6 @@ def init_uart():
 
     uart = machine.UART(machine.UART.UART1, 115200, 8, 0, 0, timeout=1000, read_buf_len=256)
     return uart
-
-def set_motor1_steps(direction, steps):
-    dir_motor1.value(direction)
-    for i in range(steps):
-        step_motor1.value(1)
-        time.sleep_ms(1)  # 控制步进电机步进脉冲的时间间隔
-        step_motor1.value(0)
-        time.sleep_ms(1)
-def set_motor2_steps(direction, steps):
-    dir_motor2.value(direction)
-    for i in range(steps):
-        step_motor2.value(1)
-        time.sleep_ms(1)  # 控制步进电机步进脉冲的时间间隔
-        step_motor2.value(0)
-        time.sleep_ms(1)
 
 def main(anchors, labels = None, model_addr="/sd/m.kmodel", sensor_window=input_size, lcd_rotation=0, sensor_hmirror=False, sensor_vflip=False):
     sensor.reset()
@@ -121,11 +120,10 @@ def main(anchors, labels = None, model_addr="/sd/m.kmodel", sensor_window=input_
             objects = kpu.run_yolo2(task, img)
             t = time.ticks_ms() - t
             if objects:
-                set_motor1_steps(0, 500)
-                set_motor1_steps(1, 500)
-                time.sleep_ms(500)
-                set_motor2_steps(1, 500)
-                set_motor2_steps(0, 500)
+                set_motor1_steps(0, 100)
+                set_motor1_steps(1, 100)
+                set_motor2_steps(1, 600)
+                set_motor2_steps(0, 600)
                 for obj in objects:
                     pos = obj.rect()
                     img.draw_rectangle(pos)
