@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "text",
+      "text": "Ganten",
+      "points": [
+        [
+          662.0,
+          321.0
+        ],
+        [
+          845.0,
+          456.0
+        ]
+      ],
+      "group_id": null,
+      "shape_type": "rectangle",
+      "flags": {},
+      "attributes": {}
+    }
+  ],
+  "imagePath": "100.jpg",
+  "imageData": null,
+  "imageHeight": 1080,
+  "imageWidth": 1080
+}
